@@ -1,0 +1,25 @@
+{
+  "name": "ushelly",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stoian Ivanov",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^17.0.17",
+    "@types/node-fetch": "^2.6.0",
+    "@types/ws": "^8.2.2",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^8.5.8",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.0",
+    "ws": "^8.5.0",
+    "bufferutil": "^4.0.6",
+    "utf-8-validate": "^5.0.8"
+  }
+}
