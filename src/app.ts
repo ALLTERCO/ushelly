@@ -87,7 +87,7 @@ function boot() {
 		try {
 			const req=await oauth_call(oauth_params,'/device/all_status?show_info=true&no_shared=true');
 			raw_list=await req.json();
-			//console.log("/device/all_status",raw_list);
+			//console.log("/device/all_status",JSON.stringify(raw_list,null,2));
 			if (is_shelly_generic_response(raw_list) && raw_list.isok==true && is_shelly_all_status_data(raw_list.data)) {
 				const devices_status=raw_list.data.devices_status;
 				for (let k in devices_status) if (devices_status.hasOwnProperty(k)){

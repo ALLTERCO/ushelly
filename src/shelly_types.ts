@@ -242,5 +242,8 @@ export type shelly_commandrequest_t={
 	"event":"Shelly:CommandRequest",
 	"trid":number,
 	"deviceId":number,
-	"data":Record<string,unknown>
+	"data":{
+		cmd:string;
+		params:Record<string,unknown>
+	}
 }

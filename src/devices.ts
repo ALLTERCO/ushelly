@@ -369,7 +369,7 @@ export function devices_ir_emit(devid:number,data:string, result_cb?:result_cb_t
 }
 
 
-export function devices_roller_go(devid:number, channel:number, go:string, result_cb?:result_cb_t) {
+export function devices_roller_go(devid:number, channel:number, go:string, duration?:number, result_cb?:result_cb_t) {
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
@@ -379,6 +379,7 @@ export function devices_roller_go(devid:number, channel:number, go:string, resul
 			params: {go: String(go), id:channel}
 		}
 	};
+	if (duration!=undefined) tosend.data.params['duration']=duration;
 	if (trid_src>10000) trid_src=10;
 	if (result_cb) register_callback(tosend.trid,result_cb);
 	push_command_req(tosend);
