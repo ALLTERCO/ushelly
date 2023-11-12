@@ -83,17 +83,19 @@ export function is_shelly_generic_response_err(r:any):r is shelly_generic_respon
 
 export interface shelly_generic_dev_info_t {
 	gen:string,
-	id: string|number,
+	id: string,
 	code: string,
 	online: boolean,
 }
 
 export function is_shelly_generic_dev_info(i:any):i is shelly_generic_dev_info_t {
+	if (!(i && typeof(i)=='object')) return false;
+	if (typeof(i.id)=='number') i.id=String(i.id);
+
 	return (
-		i && typeof(i)=='object'
-		&& typeof(i.gen)=='string'
+		typeof(i.gen)=='string'
 		&& typeof(i.code)=='string'
-		&& (typeof(i.id)=='string' ||typeof(i.id)=='number')
+		&& typeof(i.id)=='string'
 		&& typeof(i.online)=='boolean'
 	)
 }
@@ -135,7 +137,8 @@ export function is_shelly_status_dev(s:any):s is shelly_status_dev_t{
 export function is_shelly_status_dev_map(m:any):m is Record<string,shelly_status_dev_t>{
 	if (!(m && typeof(m)=='object')) return false;
 	for (let k in m) if(m.hasOwnProperty(k)) {
-		if (!is_shelly_status_dev(m[k])) {
+		const dev=m[k];
+		if (!is_shelly_status_dev(dev)) {
 			console.log("is_shelly_status_dev_map fails:",m[k]);
 			return false;
 		}
@@ -157,7 +160,7 @@ export function is_shelly_all_status_data(d:any): d is shelly_all_status_data_t 
 
 
 export interface shelly_event_dev_t {
-	id: number,
+	id: string,
 	code: string,
 	gen: string,
 }
@@ -165,7 +168,7 @@ export interface shelly_event_dev_t {
 export function is_shelly_event_dev(d:any) :d is shelly_event_dev_t{
 	return (
 		d && typeof(d)=='object'
-		&&typeof(d.id)=='number'
+		&&typeof(d.id)=='string'
 		&&typeof(d.code)=='string'
 		&&typeof(d.gen)=='string'
 	)
@@ -201,10 +204,10 @@ export function is_shelly_online(m:any):m is shelly_online_t {
 	)
 }
 //
-//{"event":"Shelly:CommandResponse","trid":10,"user":6550,"deviceId":12133370,"data":{"isok":true}}
+//{"event":"Shelly:CommandResponse","trid":10,"user":6550,"deviceId":"12133370","data":{"isok":true}}
 export interface shelly_commandresponse_t {
 	"event":"Shelly:CommandResponse",
-	"deviceId":number,
+	"deviceId":string,
 	"trid":number,
 	"user":number,
 	"data":Record<string,unknown>
@@ -214,7 +217,7 @@ export function is_shelly_commandresponse(m:any):m is shelly_commandresponse_t {
 	return (
 		m && typeof(m)=='object'
 		&& m.event=='Shelly:CommandResponse'
-		&& typeof(m.deviceId)=='number'
+		&& typeof(m.deviceId)=='string'
 		&& typeof(m.trid)=='number'
 		&& typeof(m.user)=='number'
 		&& m.data && typeof(m.data)=='object'
@@ -222,8 +225,9 @@ export function is_shelly_commandresponse(m:any):m is shelly_commandresponse_t {
 }
 
 
-export function shelly_devid_hex(devid:number):string{
-	let res=devid.toString(16).toLowerCase();
+export function shelly_devid_hex(devid:string):string{
+	if (devid[0]=='X') return devid;
+	let res=Number(devid).toString(16).toLowerCase();
 	if (res.length==6 || res.length==12) return res;
 
 	if (res.length<6) {

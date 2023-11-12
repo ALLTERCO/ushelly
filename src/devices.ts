@@ -19,14 +19,17 @@ import { EventEmitter } from "stream";
 import { push_command_req } from "./app";
 import { shelly_status_dev_t, shelly_commandrequest_t } from "./shelly_types";
 
-const devices=new Map<number,shelly_status_dev_t>();
-export function devices_get_device(deviceid:number):shelly_status_dev_t|undefined {
+const devices=new Map<string,shelly_status_dev_t>();
+export function devices_get_device(deviceid:string):shelly_status_dev_t|undefined {
 	return devices.get(deviceid);
+}
+export function enum_devices(cb:(dvid:string,status:shelly_status_dev_t)=>void){
+	for (const [devid,status] of devices) cb(devid,status);
 }
 
 let emiter=new EventEmitter();
 function emiter_emit(event:string,...params:any[]){
-	//console.log("emiter_emit:",event);
+	console.log("emiter_emit:",event);
 	emiter.emit(event,...params);
 }
 
@@ -35,13 +38,13 @@ export function devices_get_emiter():EventEmitter{
 }
 
 export function devices_new(dev:shelly_status_dev_t) {
-	let devid=(typeof(dev._dev_info.id)=="number"? dev._dev_info.id: parseInt(<string>dev._dev_info.id,16));
+	let devid=(dev._dev_info.id[0]=="X"? dev._dev_info.id: String(parseInt(<string>dev._dev_info.id,16)));
 	if (devices.has(devid)) return devices_status_report(devid,dev);
 	console.log("devices_new devid: "+devid+" ( "+dev._dev_info.id+" ) code: "+dev._dev_info.code);
 	devices.set(devid,dev);
 }
 
-export function devices_status_report(devid: number, dev: shelly_status_dev_t) {
+export function devices_status_report(devid: string, dev: shelly_status_dev_t) {
 	let old_dev=devices.get(devid);
 	if (old_dev==undefined) {
 		devices.set(devid,dev);
@@ -54,7 +57,7 @@ export function devices_status_report(devid: number, dev: shelly_status_dev_t) {
 		return;
 	}
 	if (walk(String(devid),dev,old_dev)){
-		emiter_emit(devid+'.*any',dev,old_dev,devid+'.*any');
+		emiter_emit(devid+'.*any',devid+'.*any',dev,old_dev);
 	}
 }
 
@@ -137,7 +140,7 @@ function compare(a:unknown,b:unknown): typeof compare_eq| typeof compare_neq|typ
 
 
 
-export function devices_online_report(devid: number, isonline: boolean) {
+export function devices_online_report(devid: string, isonline: boolean) {
 	emiter_emit(devid+'.*online',isonline);
 	emiter_emit('*any.*online',devid,isonline);
 }
@@ -172,7 +175,7 @@ function req_callbacks_check() {
 }
 
 
-export function devices_commandresponse_report(devid: number, trid: number, data: Record<string, unknown>) {
+export function devices_commandresponse_report(devid: string, trid: number, data: Record<string, unknown>) {
 	const pcb=req_callbacks.get(trid);
 	if (pcb) {
 		console.log("devices_commandresponse_report trid "+trid+" got a cb .. calling...");

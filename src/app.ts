@@ -92,7 +92,7 @@ function boot() {
 				const devices_status=raw_list.data.devices_status;
 				for (let k in devices_status) if (devices_status.hasOwnProperty(k)){
 					const dev=devices_status[k];
-					if (dev._dev_info.gen=='G1' || dev._dev_info.gen=='G2') devices_new(dev);
+					if (dev._dev_info.gen=='G1' || dev._dev_info.gen=='G2' || dev._dev_info.gen=='GBLE') devices_new(dev);
 				}
 				establish_event_link();
 			} else {
@@ -142,7 +142,7 @@ function new_event(this: WebSocket, raw_data: any, isBinary: boolean) {
 	if (is_shelly_statusonchange(msg)) {
 		const devid=msg.device.id;
 		const devid_hex=shelly_devid_hex(devid);
-		//console.log("status for: ",devid,'(',devid_hex,')');
+		console.log("status for: ",devid,'(',devid_hex,')');
 		return devices_status_report(devid,{...msg.status,_dev_info:{
 			code:msg.device.code,
 			gen:msg.device.gen,
