@@ -26,6 +26,9 @@ import JWT from 'jsonwebtoken';
 import { is_shelly_all_status_data, is_shelly_auth_code_token, is_shelly_generic_response, is_shelly_statusonchange, shelly_all_status_data_t, shelly_status_dev_t, shelly_statusonchange_t, shelly_devid_hex, is_shelly_online, shelly_commandrequest_t, is_shelly_commandresponse } from "./shelly_types";
 import { oauth_call, oauth_get_params } from "./oauth";
 import {WebSocket} from 'ws';
+import { webui_start } from './webui';
+
+
 {
 	let reconfigured=false;
 	for (let p_next=2; p_next<process.argv.length; p_next++) {
@@ -194,6 +197,7 @@ function establish_event_link() {
 
 function post_boot() {
 	console.log("...post_boot...");
+	webui_start();
 	fs.readdir(__dirname+ '/ucode/',(err,data)=>{
 		if (err) {
 			console.log("post_boot got err on reading ./ucode/ err:",err);
