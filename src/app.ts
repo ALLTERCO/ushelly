@@ -23,7 +23,7 @@ const emiter=devices_get_emiter();
 
 import { cfg_get, cfg_save } from "./cfg";
 import JWT from 'jsonwebtoken';
-import { is_shelly_all_status_data, is_shelly_auth_code_token, is_shelly_generic_response, is_shelly_statusonchange, shelly_all_status_data_t, shelly_status_dev_t, shelly_statusonchange_t, shelly_devid_hex, is_shelly_online, shelly_commandrequest_t, is_shelly_commandresponse } from "./shelly_types";
+import { is_shelly_all_status_data, is_shelly_auth_code_token, is_shelly_generic_response, is_shelly_statusonchange, shelly_devid_hex, is_shelly_online, shelly_commandrequest_t, is_shelly_commandresponse } from "./shelly_types";
 import { oauth_call, oauth_get_params } from "./oauth";
 import {WebSocket} from 'ws';
 import { webui_start } from './webui';

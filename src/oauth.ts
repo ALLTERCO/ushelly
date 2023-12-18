@@ -105,7 +105,10 @@ export function oauth_call(oap:oauth_params_t,suffix:string, body?:BodyInit, con
 	init.headers["Authorization"]= "Bearer "+oap.access_token;
 	if (content_type!=undefined) init.headers["Content-type"]=content_type;
 
-	if (body) init.body=body;
+	if (body) {
+		init.method="POST";
+		init.body=body;
+	}
 	
 	return fetch(oap.user_api_url_pref+suffix,init);
 }
