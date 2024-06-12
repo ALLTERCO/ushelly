@@ -207,7 +207,7 @@ export function devices_relay_turn(devid:number,channel:number,state:boolean|str
 	let tosend:shelly_commandrequest_t={
 		"event":"Shelly:CommandRequest",
 		"trid":trid_src++,
-		"deviceId":devid,
+		"deviceId":String(devid),
 		"data":{
 		  "cmd":"relay",
 		  "params":{
@@ -231,7 +231,7 @@ export function devices_light_turn(devid:number, channel:number,state:boolean|st
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
-		deviceId: devid,
+		deviceId: String(devid),
 		data: {
 			cmd: 'light',
 			params: {
@@ -256,7 +256,7 @@ export function devices_light_brightnes(devid:number,channel:number, value:unkno
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
-		deviceId: devid,
+		deviceId: String(devid),
 		data: {
 			cmd: 'light',
 			params: {brightness: clamp(Number(value),0,100), id:channel}
@@ -335,7 +335,7 @@ export function devices_light_setup(devid:number,options:unknown, result_cb?:res
 		last_req={
 			event: 'Shelly:CommandRequest',
 			trid: trid_src++,
-			deviceId: devid,
+			deviceId: String(devid),
 			data: {
 				cmd: 'light',
 				params: p,
@@ -356,7 +356,7 @@ export function devices_ir_emit(devid:number,data:string, result_cb?:result_cb_t
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
-		deviceId: devid,
+		deviceId: String(devid),
 		data: {
 			cmd: 'ir_emit',
 			params: {
@@ -376,7 +376,7 @@ export function devices_roller_go(devid:number, channel:number, go:string, durat
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
-		deviceId: devid,
+		deviceId: String(devid),
 		data: {
 			cmd: 'roller',
 			params: {go: String(go), id:channel}
@@ -393,7 +393,7 @@ export function devices_roller_to_pos(devid:number, channel:number, pos:number, 
 	let tosend:shelly_commandrequest_t={
 		event: 'Shelly:CommandRequest',
 		trid: trid_src++,
-		deviceId: devid,
+		deviceId: String(devid),
 		data: {
 			cmd: 'roller_to_pos',
 			params: {

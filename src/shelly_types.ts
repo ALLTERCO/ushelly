@@ -245,7 +245,7 @@ export function shelly_devid_hex(devid:string):string{
 export type shelly_commandrequest_t={
 	"event":"Shelly:CommandRequest",
 	"trid":number,
-	"deviceId":number,
+	"deviceId":string,
 	"data":{
 		cmd:string;
 		params:Record<string,unknown>
