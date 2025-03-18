@@ -13,9 +13,11 @@ This is a example implementation of [real-time-events](https://shelly-api-docs.s
 
 Production code should have a dedicated web service hosting to receive the web callbacks from
 Shelly Cloud's OAuth grant page. For the purpose of this demo we suggest you register a account to 
-http://pipedream.com and use their wonderful service RequestBin to "land" the web callback. If your RequestBin url is 
+http://pipedream.com and use their wonderful service [RequestBin] to "land" the web callback. If your RequestBin url is
 
 `https://some_random_string.m.pipedream.net`
+
+[RequestBin]: https://pipedream.com/requestbin
 
 you can visit 
 
