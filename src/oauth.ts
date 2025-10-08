@@ -19,8 +19,7 @@ import { cfg_get, cfg_save } from "./cfg";
 import JWT from 'jsonwebtoken';
 import { is_shelly_access_token_t as is_shelly_access_token, is_shelly_auth_code_token } from "./shelly_types";
 import fetch,{Response,RequestInit,BodyInit}  from 'node-fetch';
-
-export {BodyInit} from 'node-fetch';
+import { app_shush } from "./app";
 
 export interface oauth_params_t {
 	auth_code:string;
@@ -33,7 +32,7 @@ export interface oauth_params_t {
 let p:oauth_params_t;
 export function oauth_get_params():Promise<oauth_params_t> { 
 	if (p && p.access_token_exp>Date.now()+10000) {
-		console.log("reusing access token...");
+		if (!app_shush()) console.log("reusing access token...");
 		return Promise.resolve(p);
 	}
 	return new Promise(async (resolve,reject)=>{
@@ -57,14 +56,14 @@ export function oauth_get_params():Promise<oauth_params_t> {
 				if (is_shelly_access_token(decoded) && (decoded.exp*1000>Date.now()+10000)) {
 					p.access_token=cfg.access_token;
 					p.access_token_exp=decoded.exp*1000;
-					console.log("restored access token...");
+					if (!app_shush()) console.log("restored access token...");
 					return resolve(p);
 				}
 			}
 		}
 
 		try {
-			console.log("refreshing access token...");
+			if (!app_shush()) console.log("refreshing access token...");
 			let req=await fetch(p.user_api_url_pref+'/oauth/auth?client_id='+p.client_id+'&grant_type=code&code='+encodeURIComponent(p.auth_code));
 			if (req.status!=200) {
 				return reject(new Error("/oauth/auth faled code:"+req.status));

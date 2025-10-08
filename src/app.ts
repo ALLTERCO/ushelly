@@ -28,6 +28,14 @@ import { oauth_call, oauth_get_params } from "./oauth";
 import {WebSocket} from 'ws';
 import { webui_start } from './webui';
 
+let ucode_filter:string[]=[];
+
+let shush=false; 
+export function app_shush():boolean {return shush};
+
+let webui=true;
+export function app_webui():boolean {return webui};
+
 
 {
 	let reconfigured=false;
@@ -53,6 +61,31 @@ import { webui_start } from './webui';
 				cfg_save();
 				p_next++;
 				break;
+			};
+			case '--ucode':{
+				if (p_value==undefined) {
+					console.log('param',p_name,'needs a value!');
+					process.exit(-1);
+				}
+				ucode_filter.push(p_value+'.js');
+				p_next++;
+				continue;
+				break;
+			}
+			case '-q':{
+				shush=true;
+				continue;
+				break;
+			}
+			case '--no-webui':
+			case '--nowebui':
+			case '--no-web-ui':
+			case '--noweb-ui':
+			case '--no-web':
+			case '--noweb':{
+				webui=false;
+				continue;
+				break;
 			}
 			default:{
 				console.log('param',p_name,' ignored!');
@@ -63,6 +96,7 @@ import { webui_start } from './webui';
 		console.log('ushelly stops now as it was reconfigured! Restart with no params to use the new configuration!');
 		process.exit();
 	}
+
 }
 
 console.log('...preboot...');
@@ -145,7 +179,7 @@ function new_event(this: WebSocket, raw_data: any, isBinary: boolean) {
 	if (is_shelly_statusonchange(msg)) {
 		const devid=msg.device.id;
 		const devid_hex=shelly_devid_hex(devid);
-		console.log("status for: ",devid,'(',devid_hex,')');
+		if (!shush) console.log("status for: ",devid,'(',devid_hex,')');
 		return devices_status_report(devid,{...msg.status,_dev_info:{
 			code:msg.device.code,
 			gen:msg.device.gen,
@@ -155,12 +189,12 @@ function new_event(this: WebSocket, raw_data: any, isBinary: boolean) {
 	} else if (is_shelly_online(msg)) {
 		const devid=msg.device.id;
 		const devid_hex=shelly_devid_hex(devid);
-		console.log("online indication for: ",devid,'(',devid_hex,')',msg.online!=0);
+		if (!shush) console.log("online indication for: ",devid,'(',devid_hex,')',msg.online!=0);
 		return devices_online_report(devid,msg.online!=0);
 	} else if (is_shelly_commandresponse(msg)) {
 		const devid=msg.deviceId;
 		const devid_hex=shelly_devid_hex(devid);
-		console.log("command response for:",devid,'(',devid_hex,') trid:',msg.trid,"msg:",msg.data);
+		if (!shush) console.log("command response for:",devid,'(',devid_hex,') trid:',msg.trid,"msg:",msg.data);
 		return devices_commandresponse_report(devid,msg.trid,msg.data);
 	} else {
 		console.log("unknown msg:",JSON.stringify(msg));
@@ -197,7 +231,9 @@ function establish_event_link() {
 
 function post_boot() {
 	console.log("...post_boot...");
-	webui_start();
+	
+	if (webui) webui_start();
+
 	fs.readdir(__dirname+ '/ucode/',(err,data)=>{
 		if (err) {
 			console.log("post_boot got err on reading ./ucode/ err:",err);
@@ -205,6 +241,12 @@ function post_boot() {
 		}
 		for (let f of data) {
 			if (f.endsWith('.js')) {
+				if (ucode_filter.length>0){
+					if (ucode_filter.indexOf(f)==-1) {
+						console.log("skipping ucode from "+__dirname+'/ucode/'+f);
+						continue;
+					}
+				}
 				console.log("loadig ucode from "+__dirname+'/ucode/'+f);
 				const mod=require('./ucode/'+f);
 				if(typeof(mod.start)=='function') {
