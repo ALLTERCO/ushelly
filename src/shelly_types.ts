@@ -80,6 +80,45 @@ export function is_shelly_generic_response_err(r:any):r is shelly_generic_respon
 	)
 }
 
+export interface JrpcRequest_call{
+	"deviceId":string,
+	"method":string,
+	"params":Record<string,unknown>|undefined
+}
+
+export interface JrpcRequest extends JrpcRequest_call{
+	"event":"Shelly:JrpcRequest","trid":string
+}
+
+export interface JrpcResponse {
+	"event":"Shelly:JrpcResponse",
+	"trid":string,
+	"deviceId":string,
+	"response":(
+		{
+			"result": string|Record<string,unknown>|number|null
+		} 
+		|
+		{
+			error:string|Record<string,unknown>
+		}
+	)
+}
+export function is_JrpcResponse (o:any):o is JrpcResponse {
+	return (
+		Boolean(o) && typeof(o)=='object'
+		&& (o as JrpcResponse).event=='Shelly:JrpcResponse'
+		&& typeof((o as JrpcResponse).deviceId)=='string'
+		&& typeof((o as JrpcResponse).trid)=='string'
+		&& typeof((o as JrpcResponse).response)=='object' && Boolean((o as JrpcResponse).response)
+		&& (
+			  ( ((o as JrpcResponse).response as Record<string,unknown>)['result']!==undefined && ((o as JrpcResponse).response as Record<string,unknown>)['error']===undefined )
+			||( ((o as JrpcResponse).response as Record<string,unknown>)['result']===undefined && ((o as JrpcResponse).response as Record<string,unknown>)['error']!=undefined )
+		)
+	)
+}
+
+export type jrpc_call_cb = (res:JrpcResponse)=>void;
 
 export interface shelly_generic_dev_info_t {
 	gen:string,
