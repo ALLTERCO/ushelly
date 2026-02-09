@@ -89,6 +89,12 @@ export interface JrpcRequest_call{
 export interface JrpcRequest extends JrpcRequest_call{
 	"event":"Shelly:JrpcRequest","trid":string
 }
+export interface XURequest extends JrpcRequest_call{
+	"event":"Shelly:XURequest","trid":string
+}
+export interface XGRequest extends JrpcRequest_call{
+	"event":"Shelly:XGRequest","trid":string
+}
 
 export interface JrpcResponse {
 	"event":"Shelly:JrpcResponse",
@@ -118,7 +124,64 @@ export function is_JrpcResponse (o:any):o is JrpcResponse {
 	)
 }
 
-export type jrpc_call_cb = (res:JrpcResponse)=>void;
+export interface XUResponse {
+	"event":"Shelly:XUResponse",
+	"trid":string,
+	"deviceId":string,
+	"response":(
+		{
+			"result": string|Record<string,unknown>|number|null
+		} 
+		|
+		{
+			error:string|Record<string,unknown>
+		}
+	)
+}
+export function is_XUResponse (o:any):o is XUResponse {
+	return (
+		Boolean(o) && typeof(o)=='object'
+		&& (o as XUResponse).event=='Shelly:XUResponse'
+		&& typeof((o as XUResponse).deviceId)=='string'
+		&& typeof((o as XUResponse).trid)=='string'
+		&& typeof((o as XUResponse).response)=='object' && Boolean((o as XUResponse).response)
+		&& (
+			  ( ((o as XUResponse).response as Record<string,unknown>)['result']!==undefined && ((o as XUResponse).response as Record<string,unknown>)['error']===undefined )
+			||( ((o as XUResponse).response as Record<string,unknown>)['result']===undefined && ((o as XUResponse).response as Record<string,unknown>)['error']!=undefined )
+		)
+	)
+}
+
+
+export interface XGResponse {
+	"event":"Shelly:XGResponse",
+	"trid":string,
+	"deviceId":string,
+	"response":(
+		{
+			"result": string|Record<string,unknown>|number|null
+		} 
+		|
+		{
+			error:string|Record<string,unknown>
+		}
+	)
+}
+export function is_XGResponse (o:any):o is XGResponse {
+	return (
+		Boolean(o) && typeof(o)=='object'
+		&& (o as XGResponse).event=='Shelly:XGResponse'
+		&& typeof((o as XGResponse).deviceId)=='string'
+		&& typeof((o as XGResponse).trid)=='string'
+		&& typeof((o as XGResponse).response)=='object' && Boolean((o as XGResponse).response)
+		&& (
+			  ( ((o as XGResponse).response as Record<string,unknown>)['result']!==undefined && ((o as XGResponse).response as Record<string,unknown>)['error']===undefined )
+			||( ((o as XGResponse).response as Record<string,unknown>)['result']===undefined && ((o as XGResponse).response as Record<string,unknown>)['error']!=undefined )
+		)
+	)
+}
+
+export type jrpc_call_cb = (res:JrpcResponse|XUResponse|XGResponse)=>void;
 
 export interface shelly_generic_dev_info_t {
 	gen:string,

@@ -23,7 +23,7 @@ const emiter=devices_get_emiter();
 
 import { cfg_get, cfg_save } from "./cfg";
 import JWT from 'jsonwebtoken';
-import { is_shelly_all_status_data, is_shelly_auth_code_token, is_shelly_generic_response, is_shelly_statusonchange, shelly_devid_hex, is_shelly_online, shelly_commandrequest_t, is_shelly_commandresponse, jrpc_call_cb, JrpcRequest_call, JrpcRequest, is_JrpcResponse } from "./shelly_types";
+import { is_shelly_all_status_data, is_shelly_auth_code_token, is_shelly_generic_response, is_shelly_statusonchange, shelly_devid_hex, is_shelly_online, shelly_commandrequest_t, is_shelly_commandresponse, jrpc_call_cb, JrpcRequest_call, JrpcRequest, is_JrpcResponse, XURequest, XGRequest } from "./shelly_types";
 import { oauth_call, oauth_get_params } from "./oauth";
 import {WebSocket} from 'ws';
 import { webui_start } from './webui';
@@ -87,6 +87,11 @@ export function app_webui():boolean {return webui};
 				webui=false;
 				continue;
 				break;
+			}
+			case '-h':
+			case '--help':{
+				console.log('See README.md aslo:\n  -a, --auth-code\tset authcode to use\n  -u, --ucode\t\tsets ucode filter just name no paths or extension - only mentioned ucode files will be loaded\n  -q\t\t\tTalk less\n  --noweb\t\tDont try to run webui');
+				process.exit();
 			}
 			default:{
 				console.log('param',p_name,' ignored!');
@@ -157,35 +162,54 @@ let events_ws:WebSocket|undefined;
 let trid_ctr=1234; 
 const trid_base='ushelly_'+Math.round(Math.random()*10000)+'_';
 
-const pending_callbacks=new Map<string,{cb:jrpc_call_cb, tmo:number, d:string}>();
+const pending_callbacks=new Map<string,{cb:jrpc_call_cb, tmo:number, d:string,es:"rpc"|"xu"|"xg"}>();
 
 setInterval(()=>{
 	const now=Date.now();
 	for (let [trid,pending] of pending_callbacks) {
 		if (pending.tmo<now){
 			pending_callbacks.delete(trid);
-			pending.cb({event:'Shelly:JrpcResponse',deviceId:pending.d,trid,response:{error:"Server Timeout"}});
+			if (pending.es=='rpc') {
+				pending.cb({event:'Shelly:JrpcResponse',deviceId:pending.d,trid,response:{error:"Server Timeout"}})
+			} else if (pending.es=='xu')  {
+				pending.cb({event:'Shelly:XUResponse',deviceId:pending.d,trid,response:{error:"Server Timeout"}})
+			} else {
+				pending.cb({event:'Shelly:XGResponse',deviceId:pending.d,trid,response:{error:"Server Timeout"}})
+			}
 		}
 	}
 },1000)
 
-export function jrpc_call(call:JrpcRequest_call, cb:jrpc_call_cb){
+export function jrpc_call(call:JrpcRequest_call, cb:jrpc_call_cb, event_space:"rpc"|"xu"|"xg"='rpc'){
 
 	let trid=trid_base+(trid_ctr++);
 	if (trid_ctr>10000000) trid_ctr=1234;
 
 	if (events_ws==undefined) {
 		console.log("Server Away");
-		cb({event:'Shelly:JrpcResponse',deviceId:call.deviceId,trid,response:{error:"Server Away"}})
+		if (event_space=='rpc') {
+			cb({event:'Shelly:JrpcResponse',deviceId:call.deviceId,trid,response:{error:"Server Away"}})
+		} else if (event_space=='xu')  {
+			cb({event:'Shelly:XUResponse',deviceId:call.deviceId,trid,response:{error:"Server Away"}})
+		} else {
+			cb({event:'Shelly:XGResponse',deviceId:call.deviceId,trid,response:{error:"Server Away"}})
+		}
 		return;
 	}
 
-	const req:JrpcRequest={...call,event:"Shelly:JrpcRequest", trid};
-	pending_callbacks.set(trid,{cb,tmo:Date.now()+10000,d:call.deviceId});
+	const req={...call,event:(event_space=='rpc'?"Shelly:JrpcRequest":(event_space=='xu'?"Shelly:XURequest":"Shelly:XGRequest")), trid} satisfies JrpcRequest|XURequest|XGRequest;
+	pending_callbacks.set(trid,{cb,tmo:Date.now()+10000,d:call.deviceId,es:event_space});
+	console.log ("sending:"+JSON.stringify(req));
 	events_ws.send(JSON.stringify(req), (err)=>{
 		if(err){
 			console.log("Transport err:"+err);
-			cb({event:'Shelly:JrpcResponse',deviceId:call.deviceId,trid,response:{error:"Transport err:"+err}})
+			if (event_space=='rpc') {
+				cb({event:'Shelly:JrpcResponse',deviceId:call.deviceId,trid,response:{error:"Transport err:"+err}})
+			} else 	if (event_space=='xu') {
+				cb({event:'Shelly:XUResponse',deviceId:call.deviceId,trid,response:{error:"Transport err:"+err}})
+			} else {
+				cb({event:'Shelly:XGResponse',deviceId:call.deviceId,trid,response:{error:"Transport err:"+err}})
+			}
 		}
 	})
 }
